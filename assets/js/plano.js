@@ -144,22 +144,29 @@
 
   /* ---------- Lotes simulados sobre la foto del predio ----------
      Foto: BA_plano (vista desde la carretera), en pixeles de la imagen de 2000 × 1440.
-     Una transformación de perspectiva lleva las cuatro esquinas del plano a la foto:
-     lote 1 en la carretera y la calle principal, fin de la calle principal, final del
-     lote 19 y fin de la carretera junto al área común (lote 9). El conjunto está
-     recorrido hacia la carretera, y el frente de los lotes 1 al 9 se prolonga hasta
-     la orilla del asfalto dejando 1.5 m de banqueta. */
-  const ESQUINAS_PLANO = [[595, 117], [823, 211], [507, 625], [252, 464]];
-  const ESQUINAS_FOTO = [[295, 800], [740, 710], [1210, 750], [1020, 1215]];
-  // Orilla del asfalto del lado del predio, de la calle principal hacia la cámara.
-  const ORILLA_CARRETERA = [[160, 740], [230, 780], [325, 830], [390, 845], [450, 895], [495, 935], [530, 1000],
-    [560, 1070], [590, 1130], [620, 1200], [650, 1270], [680, 1340], [710, 1410], [722, 1440],
-    [770, 1555], [820, 1675], [870, 1795], [920, 1915]]; // los últimos puntos siguen la carretera fuera de la foto
+     Las zonas siguen el trazo que marcó el propietario sobre la foto:
+     - Amarilla (lotes 1 al 9): de la carretera hasta la calle interior.
+     - Naranja (lotes 10 al 28): entre la calle interior y la orilla del terreno.
+     - Verde: el área común, sobre el bosque.
+     Cada zona tiene su propia transformación de perspectiva (cuatro esquinas del plano
+     llevadas a la foto). El frente de los lotes 1 al 9 sigue la orilla de la carretera. */
+  const TRAMOS_FOTO = {
+    // lote 1 (carretera y calle principal), lote 1 interior, lote 9 interior, lote 9 en la carretera
+    carretera: {
+      plano: [[595, 117], [661, 144], [364.5, 535], [252, 464]],
+      foto: [[328, 797], [500, 752], [1103, 1123], [812, 1585]],
+    },
+    // lote 10, lote 20, final del lote 19 junto al área común, esquina del lote 19 en la calle interior
+    medio: {
+      plano: [[674.4, 148.9], [805.9, 202], [487.9, 613.6], [376.4, 539.4]],
+      foto: [[557, 745], [735, 700], [1283, 840], [1123, 1088]],
+    },
+  };
+  // Frente de los lotes 1 al 9: orilla de la carretera (sigue fuera de la foto por abajo).
+  const ORILLA_CARRETERA = [[300, 779], [328, 797], [543, 937], [812, 1585], [840, 1650]];
   const BANQUETA_M = 1.5;
   const PLANO_M = 70 / 25; // unidades del plano por metro (25 m de fondo ≈ 70 unidades)
-  // Área común: del lindero de los lotes 9 y 19 hasta el bosque de la derecha.
-  const AREA_FOTO = [[1210, 750], [1330, 700], [1560, 690], [1650, 770], [1720, 950], [1780, 1250], [1790, 1440],
-    [960, 1440], [1020, 1215]];
+  const AREA_FOTO = [[1283, 840], [1345, 760], [1575, 785], [1625, 1150], [1470, 1440], [925, 1440], [1103, 1123]];
 
   // Punto donde la recta p→q (prolongada más allá de q) cruza la orilla de la carretera.
   function cruceConOrilla(p, q) {
@@ -204,12 +211,13 @@
   function dibujarFoto() {
     const capaFoto = $("#foto-lotes"), capaFotoArea = $("#foto-area");
     if (!capaFoto) return;
-    const proyectar = perspectiva(ESQUINAS_PLANO, ESQUINAS_FOTO);
+    const proyecciones = {};
+    Object.entries(TRAMOS_FOTO).forEach(([z, t]) => (proyecciones[z] = perspectiva(t.plano, t.foto)));
 
     // Vértices del lote en la foto. En los lotes 1 al 9 los dos primeros vértices son el
     // frente a carretera: cada lindero se prolonga hasta el asfalto y se deja la banqueta.
     const enFoto = (l) => {
-      const pts = l.poly.map(proyectar);
+      const pts = l.poly.map(proyecciones[l.zona]);
       if (l.zona !== "carretera") return pts;
       [[0, 3], [1, 2]].forEach(([fuera, dentro]) => {
         const pi = pts[dentro], po = pts[fuera];
@@ -268,8 +276,8 @@
       const p = document.createElementNS(NS, "polygon");
       p.setAttribute("points", AREA_FOTO.map((q) => q.join(",")).join(" "));
       const t = document.createElementNS(NS, "text");
-      t.setAttribute("x", 1440);
-      t.setAttribute("y", 1060);
+      t.setAttribute("x", 1370);
+      t.setAttribute("y", 1080);
       t.textContent = "Área común · senderos";
       g.append(p, t);
       capaFotoArea.appendChild(g);
@@ -583,13 +591,36 @@
 
   /* ---------- Búsqueda y filtros ---------- */
   const buscar = $("#buscar");
-  buscar.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
+
+  // Hace parpadear dos veces un lote del plano.
+  function parpadear(id) {
+    const g = nodos.get(id);
+    if (!g) return;
+    g.classList.remove("parpadeo");
+    void g.getBoundingClientRect();
+    g.parentNode.appendChild(g);
+    g.classList.add("parpadeo");
+    g.addEventListener("animationend", () => g.classList.remove("parpadeo"), { once: true });
+  }
+
+  // Buscar: baja al plano, acerca el lote y lo hace parpadear. En computadora además
+  // abre su detalle al lado; en celular solo parpadea para no tapar el plano.
+  $("#buscador").addEventListener("submit", (e) => {
     e.preventDefault();
     const v = buscar.value.trim().toLowerCase().replace(/^lote\s*/, "");
     const l = porId.get(String(parseInt(v, 10)));
-    if (l) { seleccionar(l.id, { enfocar: true }); buscar.setCustomValidity(""); }
-    else { buscar.setCustomValidity(`No existe ese número de lote. Los lotes van del 1 al ${LOTES.length}.`); buscar.reportValidity(); }
+    if (!l) {
+      buscar.setCustomValidity(`No existe ese número de lote. Los lotes van del 1 al ${LOTES.length}.`);
+      buscar.reportValidity();
+      return;
+    }
+    buscar.setCustomValidity("");
+    buscar.blur(); // cierra el teclado del celular
+    if (ficha.classList.contains("abierta") && fichaFlotante.matches) cerrarFicha();
+    mapa.scrollIntoView({ behavior: suave(), block: "center" });
+    if (fichaFlotante.matches) enfocarLote(l);
+    else seleccionar(l.id, { enfocar: true });
+    setTimeout(() => parpadear(l.id), 450);
   });
   buscar.addEventListener("input", () => buscar.setCustomValidity(""));
 

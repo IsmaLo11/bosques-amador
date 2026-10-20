@@ -47,11 +47,12 @@ Fotos:
 
 ## Lotes sobre la foto del predio
 
-`assets/js/plano.js` dibuja los lotes sobre `predio-lotes.jpg` (pixeles de la imagen de 2000 × 1440):
+`assets/js/plano.js` dibuja los lotes sobre `predio-lotes.jpg` (pixeles de la imagen de 2000 × 1440), siguiendo las zonas marcadas sobre la foto:
 
-- `ESQUINAS_FOTO`: las cuatro esquinas del plano en la foto (lote 1 en la carretera, fin de la calle principal, final del lote 19 y fin de la carretera junto al área común). Para mover todos los lotes, suma lo mismo a las cuatro.
-- `ORILLA_CARRETERA`: la orilla del asfalto. Los lotes 1 al 9 llegan hasta ella dejando `BANQUETA_M` (1.5 m) de banqueta.
-- `AREA_FOTO`: el contorno del área común sobre el bosque.
+- `TRAMOS_FOTO.carretera`: zona amarilla, lotes 1 al 9. Son las cuatro esquinas del plano y su lugar en la foto.
+- `TRAMOS_FOTO.medio`: zona naranja, lotes 10 al 28.
+- `ORILLA_CARRETERA`: el frente de los lotes 1 al 9, con `BANQUETA_M` (1.5 m) de banqueta.
+- `AREA_FOTO`: zona verde, el área común.
 
 ## Estructura
 

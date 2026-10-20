@@ -76,7 +76,7 @@
         </ul>
       </div>
       <figure class="lugar-foto" id="mapa-foto">
-        <svg id="foto-svg" viewBox="200 560 1600 880" role="group" aria-label="Foto aérea del predio con los lotes simulados">
+        <svg id="foto-svg" viewBox="250 600 1500 840" role="group" aria-label="Foto aérea del predio con los lotes simulados">
           <image href="assets/img/predio-lotes.jpg" x="0" y="0" width="2000" height="1440"/>
           <g id="foto-area"></g>
           <g id="foto-lotes"></g>
@@ -91,12 +91,13 @@
         <p>Toca cualquier lote del plano para ver su superficie, su precio y si está disponible. Acércate con la rueda del ratón o con dos dedos.</p>
       </div>
 
-      <div class="plano-herramientas" role="search">
-        <label class="buscador">
-          <span class="sr-only">Buscar lote por número</span>
+      <div class="plano-herramientas">
+        <form class="buscador" id="buscador" role="search">
+          <label class="sr-only" for="buscar">Buscar lote por número</label>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <input id="buscar" type="search" inputmode="numeric" placeholder="Buscar lote, p. ej. 12" autocomplete="off">
-        </label>
+          <input id="buscar" type="search" inputmode="numeric" enterkeyhint="search" placeholder="Buscar lote, p. ej. 12" autocomplete="off">
+          <button type="submit" class="buscador-boton">Buscar</button>
+        </form>
         <fieldset class="filtros" aria-label="Mostrar lotes">
           <button type="button" class="filtro" data-filtro="todos" aria-pressed="true">Todos</button>
           <button type="button" class="filtro" data-filtro="disponible" aria-pressed="false">Disponibles</button>

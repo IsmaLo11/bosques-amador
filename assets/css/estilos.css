@@ -144,7 +144,7 @@ button { font: inherit; color: inherit; }
 .zonas p { margin-top: .3rem; color: var(--tinta-suave); font-size: .98rem; }
 .zonas .zona-precio { color: var(--tierra); font-weight: 700; font-size: 1.05rem; }
 .lugar-foto { position: relative; margin: 0; }
-#foto-svg { display: block; width: 100%; height: auto; aspect-ratio: 1600 / 880; border-radius: var(--radio); }
+#foto-svg { display: block; width: 100%; height: auto; aspect-ratio: 1500 / 840; border-radius: var(--radio); }
 .foto-lote polygon {
   fill: rgba(63, 175, 94, .38); stroke: rgba(255,255,255,.85); stroke-width: 2px;
   vector-effect: non-scaling-stroke; transition: fill .12s;
@@ -203,12 +203,25 @@ button { font: inherit; color: inherit; }
 
 .plano-herramientas { display: flex; flex-wrap: wrap; gap: .8rem 1.2rem; align-items: center; margin-top: 2rem; margin-bottom: 1rem; }
 .buscador {
-  display: flex; align-items: center; gap: .5rem; flex: 0 1 260px;
+  display: flex; align-items: center; gap: .5rem; flex: 0 1 320px; margin: 0; padding-right: .3rem !important;
   background: #fff; border: 1px solid var(--linea); border-radius: 6px; padding: 0 1rem;
 }
 .buscador svg { width: 18px; height: 18px; color: var(--tinta-suave); flex: none; }
 .buscador input { border: 0; outline: 0; background: none; font: inherit; font-size: 1rem; padding: .7rem 0; width: 100%; min-width: 0; }
 .buscador:focus-within { outline: 3px solid var(--apartado); outline-offset: 2px; }
+.buscador-boton {
+  flex: none; border: 0; border-radius: 5px; background: var(--pino); color: #fff; cursor: pointer;
+  font-weight: 600; font-size: .92rem; padding: .45rem .9rem; min-height: 36px;
+}
+.buscador-boton:hover { background: var(--pino-2); }
+/* Lote buscado: parpadea dos veces en color arena */
+.lote.parpadeo polygon { animation: parpadeo 1.6s ease-in-out; }
+.lote.parpadeo text { opacity: 1; }
+@keyframes parpadeo {
+  0%, 50%, 100% { fill: rgba(63, 175, 94, .32); stroke: rgba(23, 33, 27, .5); stroke-width: 1px; }
+  25%, 75% { fill: rgba(242, 194, 126, .95); stroke: var(--tierra); stroke-width: 3px; }
+}
+@media (prefers-reduced-motion: reduce) { .lote.parpadeo polygon { animation-duration: 2.4s; } }
 .filtros { display: flex; flex-wrap: wrap; gap: .5rem; border: 0; padding: 0; margin: 0; }
 .filtro {
   border: 1px solid var(--linea); background: #fff; border-radius: 6px;
