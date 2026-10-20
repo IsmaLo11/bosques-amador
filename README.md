@@ -43,12 +43,16 @@ Fotos:
 
 | Archivo | Origen | Dónde se usa |
 | --- | --- | --- |
-| `predio-lotes.jpg` | `H_orbita.mp4`, segundo 40, recortada a la derecha | El lugar (lotes simulados encima) |
-| `vista-carretera.jpg` | `BA_plano.jpeg`, sin los baches de la carretera | Vista desde la carretera |
+| `predio-lotes.jpg` | `BA_plano.jpeg`, sin los baches de la carretera | El lugar (lotes simulados encima) |
+| `vista-carretera.jpg` | `BA_esquina.jpeg` | Vista desde la carretera |
 
 ## Lotes sobre la foto del predio
 
-`assets/js/plano.js` dibuja los lotes sobre `predio-lotes.jpg` con una transformación de perspectiva. Si cambias la foto, ajusta `ESQUINAS_FOTO` (pixeles del cuadro 4K original): los extremos de la 2a línea de arbolitos (orilla de los lotes 10 al 19) y de la 3a línea (orilla de los lotes 20 al 28), desde la calle principal hasta el bosque. `AREA_FOTO` es el contorno del área común.
+`assets/js/plano.js` dibuja los lotes sobre `predio-lotes.jpg` (pixeles de la imagen de 2000 × 1440):
+
+- `ESQUINAS_FOTO`: cuatro puntos que definen la perspectiva. Son la línea interior de los lotes 1 al 9, la orilla de los lotes 20 al 28 y el final del lote 19, junto a la camioneta.
+- `ORILLA_CARRETERA`: la orilla del asfalto. Los lotes 1 al 9 llegan hasta ella dejando `BANQUETA_M` (1.5 m) de banqueta.
+- `AREA_FOTO`: el contorno del área común sobre el bosque.
 
 ## Estructura
 

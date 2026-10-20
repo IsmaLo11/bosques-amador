@@ -105,6 +105,7 @@
   const capa = $("#capa-lotes");
   const capaArea = $("#capa-area");
   const nodos = new Map();
+  const nodosFoto = new Map();
   let areaNodo = null;
 
   function dibujar() {
@@ -141,16 +142,37 @@
   }
 
   /* ---------- Lotes simulados sobre la foto del predio ----------
-     Foto: cuadro del segundo 40 del video del dron (H_orbita), en pixeles del 4K original.
-     Las coordenadas del plano se proyectan con una transformación de perspectiva definida
-     por las dos líneas de arbolitos que limitan los lotes 10 al 28:
-     - 2a línea (orilla de los lotes 10 al 19), desde la calle principal hasta el bosque.
-     - 3a línea (orilla de los lotes 20 al 28 y 19), antes de las dos líneas blancas.
-     Con eso los lotes 1 al 9 quedan entre la carretera y la 1a línea de arbolitos.
-     El área común es el bosque de la parte de abajo. */
-  const ESQUINAS_PLANO = [[674, 149], [806, 202], [488, 614], [376, 539]];
-  const ESQUINAS_FOTO = [[1865, 405], [2410, 370], [2560, 920], [1670, 890]];
-  const AREA_FOTO = [[930, 1040], [1250, 955], [1660, 905], [2560, 935], [2900, 900], [2900, 1500], [700, 1500], [700, 1180]];
+     Foto: BA_plano (vista desde la carretera), en pixeles de la imagen de 2000 × 1440.
+     Una sola transformación de perspectiva lleva el plano a la foto, definida por:
+     - la línea interior de los lotes 1 al 9 (de la calle principal al área común),
+     - la orilla de los lotes 20 al 28 y el final del lote 19, que queda junto a la
+       camioneta estacionada entre el terreno y el bosque de senderos.
+     Los lotes 1 al 9 llegan hasta la carretera: su frente se recorta sobre la orilla
+     del asfalto dejando 1.5 m de banqueta. */
+  const ESQUINAS_PLANO = [[661, 144], [806, 202], [488, 614], [364.5, 535]]; // la 3a esquina es el final del lote 19
+  const ESQUINAS_FOTO = [[396, 772], [815, 684], [1292, 723], [1094, 1194]]; // lote 19 termina en la camioneta
+  // Orilla del asfalto del lado del predio, de la calle principal hacia la cámara.
+  const ORILLA_CARRETERA = [[160, 740], [230, 780], [325, 830], [390, 845], [450, 895], [495, 935], [530, 1000],
+    [560, 1070], [590, 1130], [620, 1200], [650, 1270], [680, 1340], [710, 1410], [722, 1440],
+    [770, 1555], [820, 1675], [870, 1795], [920, 1915]]; // los últimos puntos siguen la carretera fuera de la foto
+  const BANQUETA_M = 1.5;
+  const PLANO_M = 70 / 25; // unidades del plano por metro (25 m de fondo ≈ 70 unidades)
+  const AREA_FOTO = [[1305, 705], [1540, 698], [1600, 760], [1655, 930], [1695, 1300], [1075, 1300], [1094, 1194]];
+
+  // Punto donde la recta p→q (prolongada más allá de q) cruza la orilla de la carretera.
+  function cruceConOrilla(p, q) {
+    const dx = q[0] - p[0], dy = q[1] - p[1];
+    let mejor = null;
+    for (let i = 0; i < ORILLA_CARRETERA.length - 1; i++) {
+      const [ax, ay] = ORILLA_CARRETERA[i], [bx, by] = ORILLA_CARRETERA[i + 1];
+      const ex = bx - ax, ey = by - ay, den = dx * ey - dy * ex;
+      if (Math.abs(den) < 1e-9) continue;
+      const t = ((ax - p[0]) * ey - (ay - p[1]) * ex) / den;
+      const u = ((ax - p[0]) * dy - (ay - p[1]) * dx) / den;
+      if (u >= 0 && u <= 1 && t > 0 && (!mejor || t < mejor.t)) mejor = { t, x: p[0] + t * dx, y: p[1] + t * dy };
+    }
+    return mejor ? [mejor.x, mejor.y] : q;
+  }
 
   function perspectiva(de, a) {
     // Resuelve los 8 coeficientes de la homografía (eliminación de Gauss).
@@ -181,27 +203,62 @@
     const capaFoto = $("#foto-lotes"), capaFotoArea = $("#foto-area");
     if (!capaFoto) return;
     const proyectar = perspectiva(ESQUINAS_PLANO, ESQUINAS_FOTO);
-    const puntos = (poly) => poly.map((q) => proyectar(q).map((n) => n.toFixed(1)).join(",")).join(" ");
+
+    // Vértices del lote en la foto. En los lotes 1 al 9 los dos primeros vértices son el
+    // frente a carretera. Como la carretera se abre en cuña (los lotes 5 al 9 son más
+    // profundos), cada lindero se traza desde la línea interior en la dirección que marca
+    // la perspectiva hasta tocar el asfalto, y se recorta dejando la banqueta.
+    const enFoto = (l) => {
+      const pts = l.poly.map(proyectar);
+      if (l.zona !== "carretera") return pts;
+      [[0, 3], [1, 2]].forEach(([fuera, dentro]) => {
+        const qi = l.poly[dentro], qo = l.poly[fuera];
+        const largo = Math.hypot(qo[0] - qi[0], qo[1] - qi[1]);
+        const unMetro = [qi[0] + ((qo[0] - qi[0]) / largo) * PLANO_M, qi[1] + ((qo[1] - qi[1]) / largo) * PLANO_M];
+        const pi = pts[dentro], pm = proyectar(unMetro);
+        const pxPorM = Math.hypot(pm[0] - pi[0], pm[1] - pi[1]);
+        const r = cruceConOrilla(pi, pm);
+        const d = Math.hypot(r[0] - pi[0], r[1] - pi[1]) || 1;
+        const k = Math.min((BANQUETA_M * pxPorM) / d, 0.5);
+        pts[fuera] = [r[0] + (pi[0] - r[0]) * k, r[1] + (pi[1] - r[1]) * k];
+      });
+      return pts;
+    };
 
     LOTES.forEach((l) => {
-      const a = document.createElementNS(NS, "a");
-      a.setAttribute("href", `#lote-${l.id}`);
+      const pts = enFoto(l);
+      const a = document.createElementNS(NS, "g");
       a.setAttribute("class", "foto-lote");
-      a.setAttribute("aria-label", `Lote ${l.numero}, ${ESTADOS[l.estado]}. Ver en el plano`);
+      a.setAttribute("tabindex", "0");
+      a.setAttribute("role", "button");
+      a.setAttribute("aria-label", `Lote ${l.numero}, ${num.format(l.superficie)} metros cuadrados, ${ESTADOS[l.estado]}`);
+      a.dataset.id = l.id;
       a.dataset.estado = l.estado;
       const p = document.createElementNS(NS, "polygon");
-      p.setAttribute("points", puntos(l.poly));
-      const [cx, cy] = proyectar(l.centro);
+      p.setAttribute("points", pts.map((q) => q.map((n) => n.toFixed(1)).join(",")).join(" "));
+      const cx = pts.reduce((s, q) => s + q[0], 0) / pts.length, cy = pts.reduce((s, q) => s + q[1], 0) / pts.length;
       const t = document.createElementNS(NS, "text");
       t.setAttribute("x", cx.toFixed(1));
       t.setAttribute("y", cy.toFixed(1));
       // El número se ajusta a lo alto del lote en la foto (los de arriba se ven más angostos).
-      const ys = l.poly.map((q) => proyectar(q)[1]);
-      t.setAttribute("font-size", Math.round(Math.min(Math.max((Math.max(...ys) - Math.min(...ys)) * 0.62, 20), 44)));
+      const ys = pts.map((q) => q[1]);
+      t.setAttribute("font-size", Math.round(Math.min(Math.max((Math.max(...ys) - Math.min(...ys)) * 0.55, 13), 30)));
       t.textContent = l.numero;
       a.append(p, t);
       capaFoto.appendChild(a);
+      nodosFoto.set(l.id, a);
     });
+
+    // Al tocar un lote de la foto se abre su detalle ahí mismo, sin bajar al plano.
+    const abrirDesdeFoto = (e) => {
+      const g = e.target.closest(".foto-lote");
+      if (!g) return;
+      if (e.type === "keydown") { if (e.key !== "Enter" && e.key !== " ") return; e.preventDefault(); }
+      if (g.dataset.id === seleccionado && ficha.classList.contains("desde-foto")) cerrarFicha();
+      else seleccionar(g.dataset.id, { desdeFoto: true });
+    };
+    capaFoto.addEventListener("click", abrirDesdeFoto);
+    capaFoto.addEventListener("keydown", abrirDesdeFoto);
 
     {
       const g = document.createElementNS(NS, "g");
@@ -209,8 +266,8 @@
       const p = document.createElementNS(NS, "polygon");
       p.setAttribute("points", AREA_FOTO.map((q) => q.join(",")).join(" "));
       const t = document.createElementNS(NS, "text");
-      t.setAttribute("x", 1800);
-      t.setAttribute("y", 1240);
+      t.setAttribute("x", 1440);
+      t.setAttribute("y", 1010);
       t.textContent = "Área común · senderos";
       g.append(p, t);
       capaFotoArea.appendChild(g);
@@ -380,7 +437,7 @@
   const ficha = $("#ficha");
 
   function limpiarSeleccion() {
-    if (seleccionado) nodos.get(seleccionado)?.classList.remove("activo");
+    if (seleccionado) { nodos.get(seleccionado)?.classList.remove("activo"); nodosFoto.get(seleccionado)?.classList.remove("activo"); }
     areaNodo?.classList.remove("activo");
     seleccionado = null;
   }
@@ -393,6 +450,7 @@
     scrollGuardado = window.scrollY;
     document.body.style.top = `-${scrollGuardado}px`;
     document.body.classList.add("pagina-fija");
+    marcarBarra();
   }
 
   function soltarPagina() {
@@ -412,7 +470,7 @@
     fijarPagina();
   }
 
-  function seleccionar(id, { enfocar = false, desdeHash = false } = {}) {
+  function seleccionar(id, { enfocar = false, desdeHash = false, desdeFoto = false } = {}) {
     const l = porId.get(id);
     if (!l) { cerrarFicha(); return; }
     limpiarSeleccion();
@@ -420,6 +478,10 @@
     const g = nodos.get(id);
     g.classList.add("activo");
     g.parentNode.appendChild(g);
+    const gf = nodosFoto.get(id);
+    if (gf) { gf.classList.add("activo"); gf.parentNode.appendChild(gf); }
+    // Desde la foto el detalle aparece flotando sobre ella (sin mover la página al plano).
+    ficha.classList.toggle("desde-foto", desdeFoto);
 
     $("#f-zona").textContent = ZONAS[l.zona];
     $("#f-numero").textContent = l.numero;
@@ -447,6 +509,7 @@
   function seleccionarArea({ enfocar = false } = {}) {
     limpiarSeleccion();
     areaNodo?.classList.add("activo");
+    ficha.classList.remove("desde-foto");
     abrirPanel("#ficha-area");
     if (enfocar) enfocarCaja(cajaDe([AREA]), 1.15);
   }
@@ -456,10 +519,10 @@
     $("#ficha-vacia").hidden = false;
     $("#ficha-lote").hidden = true;
     $("#ficha-area").hidden = true;
-    ficha.classList.remove("abierta");
+    ficha.classList.remove("abierta", "desde-foto");
     document.body.classList.remove("ficha-abierta");
     soltarPagina();
-    if (location.hash.startsWith("#lote-")) history.replaceState(null, "", "#plano");
+    if (location.hash.startsWith("#lote-")) history.replaceState(null, "", location.pathname + location.search);
   }
 
   svg.addEventListener("click", (e) => {
@@ -479,8 +542,25 @@
   $("#area-cerrar").addEventListener("click", cerrarFicha);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && ficha.classList.contains("abierta")) cerrarFicha(); });
 
+  // "Ver el área común en el mapa": sube a la foto del predio y hace brillar el área común.
   document.querySelectorAll("[data-ver-area]").forEach((a) =>
-    a.addEventListener("click", () => setTimeout(() => seleccionarArea({ enfocar: true }), 350)));
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const foto = $("#mapa-foto");
+      foto.scrollIntoView({ behavior: suave(), block: "center" });
+      const area = $("#foto-area .foto-area");
+      if (!area) return;
+      area.classList.remove("brillar");
+      const brillar = () => { void area.getBoundingClientRect(); area.classList.add("brillar"); };
+      // Espera a que termine el desplazamiento antes de iluminarla.
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver((es) => {
+          if (es[0].intersectionRatio >= 0.6) { io.disconnect(); setTimeout(brillar, 350); }
+        }, { threshold: [0.6] });
+        io.observe(foto);
+      } else setTimeout(brillar, 700);
+      area.addEventListener("animationend", () => area.classList.remove("brillar"), { once: true });
+    }));
 
   $("#f-compartir").addEventListener("click", async (e) => {
     const b = e.currentTarget;
@@ -523,7 +603,7 @@
 
   /* ---------- Barra superior ---------- */
   const barra = $("#barra");
-  const marcarBarra = () => barra.classList.toggle("solida", window.scrollY > 40);
+  const marcarBarra = () => barra.classList.toggle("solida", window.scrollY > 40 || document.body.classList.contains("pagina-fija"));
   window.addEventListener("scroll", marcarBarra, { passive: true });
 
   /* ---------- Inicio ---------- */
