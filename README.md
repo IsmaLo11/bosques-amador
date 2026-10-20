@@ -29,14 +29,26 @@ Para marcar un lote como vendido, busca su número en `data/lotes.js` y cambia `
 
 ## Origen de los datos
 
-Las formas, superficies y precios de los lotes salen del plano `PLANO_PARA_MOSTRAR_LOTES_28_LOTES.pdf` (Plano de Fracción "A", PF-1/1, agosto 2025). Los videos son recortes del video del dron `BosquesAmador_HD.mp4`:
+Las formas, superficies y precios de los lotes salen del plano `PLANO_PARA_MOSTRAR_LOTES_28_LOTES.pdf` (Plano de Fracción "A", PF-1/1, agosto 2025).
 
-| Archivo | Segundos del video original | Dónde se usa |
+Videos (cada uno tiene versión de escritorio 1920×1080 y versión vertical `-movil` 1080×1920 para celular):
+
+| Archivo | Origen | Dónde se usa |
 | --- | --- | --- |
-| `hero.mp4` / `hero-movil.mp4` | 0 a 15 (letrero "Bienvenidos a Zacatlán") | Portada |
-| `terreno.mp4` | 20 a 32 | Ya no se usa (El lugar ahora muestra `assets/img/predio.jpg`) |
-| `bosque.mp4` | 48 al final | Área común |
-| `acceso.mp4` | 40 a 47 | Contacto |
+| `hero.mp4` / `hero-movil.mp4` | `BosquesAmador_4K.mp4`, segundos 0 a 15 | Portada |
+| `bosque.mp4` / `bosque-movil.mp4` | `H_orbita.mp4`, segundos 20 a 40 | Área común |
+| `acceso.mp4` / `acceso-movil.mp4` | `H_orbita.mp4`, de 1:10 a 1:30 | Contacto |
+
+Fotos:
+
+| Archivo | Origen | Dónde se usa |
+| --- | --- | --- |
+| `predio-lotes.jpg` | `H_orbita.mp4`, segundo 40, recortada a la derecha | El lugar (lotes simulados encima) |
+| `vista-carretera.jpg` | `BA_plano.jpeg`, sin los baches de la carretera | Vista desde la carretera |
+
+## Lotes sobre la foto del predio
+
+`assets/js/plano.js` dibuja los lotes sobre `predio-lotes.jpg` con una transformación de perspectiva. Si cambias la foto, ajusta `ESQUINAS_FOTO` (pixeles del cuadro 4K original): los extremos de la 2a línea de arbolitos (orilla de los lotes 10 al 19) y de la 3a línea (orilla de los lotes 20 al 28), desde la calle principal hasta el bosque. `AREA_FOTO` es el contorno del área común.
 
 ## Estructura
 

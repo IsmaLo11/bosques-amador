@@ -39,8 +39,10 @@
   function configurarVideos() {
     const sinMovimiento = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const videos = document.querySelectorAll("video[data-src]");
-    if (sinMovimiento) return; // se queda la imagen fija (poster)
     const movil = matchMedia("(max-width: 700px)").matches;
+    // En celular se usan versiones verticales (más nítidas en pantallas altas)
+    if (movil) videos.forEach((v) => { if (v.dataset.posterMovil) v.poster = v.dataset.posterMovil; });
+    if (sinMovimiento) return; // se queda la imagen fija (poster)
     const cargar = (v) => {
       if (!v.src) { v.src = (movil && v.dataset.srcMovil) || v.dataset.src; }
       const p = v.play(); if (p) p.catch(() => {});
@@ -139,22 +141,16 @@
   }
 
   /* ---------- Lotes simulados sobre la foto del predio ----------
-     Se proyectan las coordenadas del plano sobre la foto aérea con transformaciones
-     de perspectiva, cada una definida por cuatro esquinas (plano -> pixeles de la foto):
-     - Lotes 1 al 9: la franja entre la carretera pavimentada y el borde del barbecho.
-     - Lotes 10 al 28: del borde del barbecho hasta la camioneta y el bosque.
-     El área común se dibuja directo sobre el bosque de la derecha. */
-  const TRAMOS_FOTO = {
-    carretera: {
-      plano: [[595, 117], [661, 144], [364.5, 535], [252, 464]],
-      foto: [[314, 784], [396, 772], [1094, 1194], [704, 1315]],
-    },
-    medio: {
-      plano: [[661, 144], [823, 211], [507, 625], [364.5, 535]],
-      foto: [[396, 772], [830, 680], [1300, 720], [1094, 1194]],
-    },
-  };
-  const AREA_FOTO = [[1305, 705], [1540, 698], [1600, 760], [1655, 930], [1695, 1300], [1075, 1300], [1094, 1194]];
+     Foto: cuadro del segundo 40 del video del dron (H_orbita), en pixeles del 4K original.
+     Las coordenadas del plano se proyectan con una transformación de perspectiva definida
+     por las dos líneas de arbolitos que limitan los lotes 10 al 28:
+     - 2a línea (orilla de los lotes 10 al 19), desde la calle principal hasta el bosque.
+     - 3a línea (orilla de los lotes 20 al 28 y 19), antes de las dos líneas blancas.
+     Con eso los lotes 1 al 9 quedan entre la carretera y la 1a línea de arbolitos.
+     El área común es el bosque de la parte de abajo. */
+  const ESQUINAS_PLANO = [[674, 149], [806, 202], [488, 614], [376, 539]];
+  const ESQUINAS_FOTO = [[1865, 405], [2410, 370], [2560, 920], [1670, 890]];
+  const AREA_FOTO = [[930, 1040], [1250, 955], [1660, 905], [2560, 935], [2900, 900], [2900, 1500], [700, 1500], [700, 1180]];
 
   function perspectiva(de, a) {
     // Resuelve los 8 coeficientes de la homografía (eliminación de Gauss).
@@ -184,9 +180,8 @@
   function dibujarFoto() {
     const capaFoto = $("#foto-lotes"), capaFotoArea = $("#foto-area");
     if (!capaFoto) return;
-    const proyecciones = {};
-    Object.entries(TRAMOS_FOTO).forEach(([z, t]) => (proyecciones[z] = perspectiva(t.plano, t.foto)));
-    const puntos = (poly, proyectar) => poly.map((q) => proyectar(q).map((n) => n.toFixed(1)).join(",")).join(" ");
+    const proyectar = perspectiva(ESQUINAS_PLANO, ESQUINAS_FOTO);
+    const puntos = (poly) => poly.map((q) => proyectar(q).map((n) => n.toFixed(1)).join(",")).join(" ");
 
     LOTES.forEach((l) => {
       const a = document.createElementNS(NS, "a");
@@ -194,15 +189,15 @@
       a.setAttribute("class", "foto-lote");
       a.setAttribute("aria-label", `Lote ${l.numero}, ${ESTADOS[l.estado]}. Ver en el plano`);
       a.dataset.estado = l.estado;
-      const proyectar = proyecciones[l.zona];
       const p = document.createElementNS(NS, "polygon");
-      p.setAttribute("points", puntos(l.poly, proyectar));
+      p.setAttribute("points", puntos(l.poly));
       const [cx, cy] = proyectar(l.centro);
       const t = document.createElementNS(NS, "text");
       t.setAttribute("x", cx.toFixed(1));
       t.setAttribute("y", cy.toFixed(1));
-      // Los lotes lejanos se ven más chicos en la foto; el número también.
-      t.setAttribute("font-size", Math.round(14 + (cy - 680) * 0.03));
+      // El número se ajusta a lo alto del lote en la foto (los de arriba se ven más angostos).
+      const ys = l.poly.map((q) => proyectar(q)[1]);
+      t.setAttribute("font-size", Math.round(Math.min(Math.max((Math.max(...ys) - Math.min(...ys)) * 0.62, 20), 44)));
       t.textContent = l.numero;
       a.append(p, t);
       capaFoto.appendChild(a);
@@ -214,8 +209,8 @@
       const p = document.createElementNS(NS, "polygon");
       p.setAttribute("points", AREA_FOTO.map((q) => q.join(",")).join(" "));
       const t = document.createElementNS(NS, "text");
-      t.setAttribute("x", 1420);
-      t.setAttribute("y", 1000);
+      t.setAttribute("x", 1800);
+      t.setAttribute("y", 1240);
       t.textContent = "Área común · senderos";
       g.append(p, t);
       capaFotoArea.appendChild(g);
@@ -390,10 +385,31 @@
     seleccionado = null;
   }
 
+  const fichaFlotante = matchMedia("(max-width: 960px)");
+  let scrollGuardado = null;
+
+  function fijarPagina() {
+    if (!fichaFlotante.matches || scrollGuardado !== null) return;
+    scrollGuardado = window.scrollY;
+    document.body.style.top = `-${scrollGuardado}px`;
+    document.body.classList.add("pagina-fija");
+  }
+
+  function soltarPagina() {
+    if (scrollGuardado === null) return;
+    document.body.classList.remove("pagina-fija");
+    document.body.style.top = "";
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, scrollGuardado);
+    document.documentElement.style.scrollBehavior = "";
+    scrollGuardado = null;
+  }
+
   function abrirPanel(id) {
     ["#ficha-vacia", "#ficha-lote", "#ficha-area"].forEach((s) => ($(s).hidden = s !== id));
     ficha.classList.add("abierta");
     document.body.classList.add("ficha-abierta");
+    fijarPagina();
   }
 
   function seleccionar(id, { enfocar = false, desdeHash = false } = {}) {
@@ -442,6 +458,7 @@
     $("#ficha-area").hidden = true;
     ficha.classList.remove("abierta");
     document.body.classList.remove("ficha-abierta");
+    soltarPagina();
     if (location.hash.startsWith("#lote-")) history.replaceState(null, "", "#plano");
   }
 
@@ -521,8 +538,11 @@
   function desdeHash() {
     const m = location.hash.match(/^#lote-(\d+)$/);
     if (m && porId.has(m[1])) {
-      seleccionar(m[1], { enfocar: true, desdeHash: true });
+      // Primero se baja al plano y luego se abre la ficha (en celular la ficha fija la página).
+      document.documentElement.style.scrollBehavior = "auto";
       document.getElementById("plano").scrollIntoView();
+      document.documentElement.style.scrollBehavior = "";
+      seleccionar(m[1], { enfocar: true, desdeHash: true });
     }
   }
   window.addEventListener("hashchange", desdeHash);

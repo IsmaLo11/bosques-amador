@@ -39,13 +39,13 @@
     <!-- Portada: primeros 15 segundos del video, con el letrero "Bienvenidos a Zacatlán" -->
     <section class="hero" id="inicio">
       <video class="hero-video video-fondo" id="hero-video" muted loop playsinline preload="metadata"
-             poster="assets/video/hero.webp"
+             poster="assets/video/hero.webp" data-poster-movil="assets/video/hero-movil.webp"
              data-src="assets/video/hero.mp4" data-src-movil="assets/video/hero-movil.mp4"
              aria-hidden="true"></video>
       <div class="hero-contenido">
         <p class="hero-lugar">Zacatlán de las Manzanas, Puebla</p>
         <h1>Bosques Amador</h1>
-        <p class="hero-lema">Lotes para tu cabaña entre cerros con bosque, a 10&nbsp;minutos del Valle de Piedras Encimadas.</p>
+        <p class="hero-lema">Lotes para tu cabaña entre cerros con bosque, a 10&nbsp;minutos del <strong class="resalte">Valle de Piedras Encimadas.</strong></p>
         <div class="hero-acciones">
           <a class="boton boton-tierra" href="#plano">Elegir mi lote</a>
           <a class="boton boton-contorno" href="#contacto">Agendar una visita</a>
@@ -76,12 +76,12 @@
         </ul>
       </div>
       <figure class="lugar-foto">
-        <svg id="foto-svg" viewBox="260 400 1450 1040" role="group" aria-label="Foto aérea del predio con los lotes simulados">
-          <image href="assets/img/predio.jpg" x="0" y="0" width="2000" height="1440"/>
+        <svg id="foto-svg" viewBox="700 250 2200 1250" role="group" aria-label="Foto aérea del predio con los lotes simulados">
+          <image href="assets/img/predio-lotes.jpg" x="0" y="0" width="2900" height="2160"/>
           <g id="foto-area"></g>
           <g id="foto-lotes"></g>
         </svg>
-        <figcaption>Foto real del predio desde la carretera. Los lotes están simulados sobre la imagen; toca uno para verlo en el plano.</figcaption>
+        <figcaption>Foto real del predio desde el dron. Los lotes están simulados sobre la imagen; toca uno para verlo en el plano.</figcaption>
       </figure>
     </section>
 
@@ -183,9 +183,15 @@
       </div>
     </section>
 
+    <section class="vista" aria-label="El predio visto desde la carretera">
+      <img src="assets/img/vista-carretera.jpg" width="2000" height="1440" loading="lazy"
+           alt="Vista aérea del predio junto a la carretera Las Lajas–Camotepec, con el bosque del área común a la derecha">
+      <p class="vista-texto">Así se ve el predio desde la carretera Las Lajas–Camotepec. A la derecha, el bosque del área común.</p>
+    </section>
+
     <section class="area-comun" id="area-comun" aria-labelledby="area-titulo">
       <video class="video-fondo area-video" muted loop playsinline preload="none" poster="assets/video/bosque.webp"
-             data-src="assets/video/bosque.mp4" aria-hidden="true"></video>
+             data-src="assets/video/bosque.mp4" data-src-movil="assets/video/bosque-movil.mp4" data-poster-movil="assets/video/bosque-movil.webp" aria-hidden="true"></video>
       <div class="area-contenido">
         <h2 id="area-titulo">Una hectárea de bosque solo para propietarios</h2>
         <p>Además de los lotes, Bosques Amador tiene una hectárea de área verde boscosa de uso exclusivo para quienes compren aquí. Sales de tu cabaña y en unos metros ya estás caminando entre árboles.</p>
@@ -237,7 +243,7 @@
 
     <section class="contacto" id="contacto" aria-labelledby="contacto-titulo">
       <video class="video-fondo contacto-video" muted loop playsinline preload="none" poster="assets/video/acceso.webp"
-             data-src="assets/video/acceso.mp4" aria-hidden="true"></video>
+             data-src="assets/video/acceso.mp4" data-src-movil="assets/video/acceso-movil.mp4" data-poster-movil="assets/video/acceso-movil.webp" aria-hidden="true"></video>
       <div class="contacto-contenido">
         <h2 id="contacto-titulo">Ven a conocer tu lote</h2>
         <p>Escríbenos y te enviamos la disponibilidad actualizada, las formas de pago y fechas para visitar el terreno.</p>
