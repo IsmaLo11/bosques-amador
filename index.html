@@ -27,8 +27,8 @@
     </a>
     <nav class="menu" aria-label="Secciones">
       <a href="#lugar">El lugar</a>
-      <a href="#area-comun">Área común</a>
       <a href="#plano">Plano de lotes</a>
+      <a href="#area-comun">Área común</a>
       <a href="#ubicacion">Ubicación</a>
       <a href="#contacto">Contacto</a>
     </nav>
@@ -52,9 +52,9 @@
         </div>
       </div>
       <dl class="hero-datos">
-        <div><dt>Lotes</dt><dd><span data-dato="total">28</span> en 2 hectáreas</dd></div>
-        <div><dt>Superficies</dt><dd>desde <span data-dato="min">482 m²</span></dd></div>
-        <div><dt>Precio</dt><dd>desde <span data-dato="desde">$350,000</span></dd></div>
+        <div><dt>Lotes</dt><dd class="dato-num" data-dato="total">28</dd><dd class="dato-nota">en 2 hectáreas</dd></div>
+        <div><dt>Superficie mínima</dt><dd class="dato-num" data-dato="min">482 m²</dd><dd class="dato-nota">lotes de hasta <span data-dato="max">1,085 m²</span></dd></div>
+        <div><dt>Precio inicial</dt><dd class="dato-num" data-dato="desde">$350,000</dd><dd class="dato-nota">por lote</dd></div>
       </dl>
     </section>
 
@@ -75,27 +75,14 @@
           </li>
         </ul>
       </div>
-      <figure class="lugar-video">
-        <video class="video-fondo" muted loop playsinline preload="none" poster="assets/video/terreno.webp"
-               data-src="assets/video/terreno.mp4" aria-hidden="true"></video>
-        <figcaption>El terreno visto desde el aire, con el bosque al borde del predio.</figcaption>
+      <figure class="lugar-foto">
+        <svg id="foto-svg" viewBox="260 400 1450 1040" role="group" aria-label="Foto aérea del predio con los lotes simulados">
+          <image href="assets/img/predio.jpg" x="0" y="0" width="2000" height="1440"/>
+          <g id="foto-area"></g>
+          <g id="foto-lotes"></g>
+        </svg>
+        <figcaption>Foto real del predio desde la carretera. Los lotes están simulados sobre la imagen; toca uno para verlo en el plano.</figcaption>
       </figure>
-    </section>
-
-    <section class="area-comun" id="area-comun" aria-labelledby="area-titulo">
-      <video class="video-fondo area-video" muted loop playsinline preload="none" poster="assets/video/bosque.webp"
-             data-src="assets/video/bosque.mp4" aria-hidden="true"></video>
-      <div class="area-contenido">
-        <h2 id="area-titulo">Una hectárea de bosque solo para propietarios</h2>
-        <p>Además de los lotes, Bosques Amador tiene una hectárea de área verde boscosa de uso exclusivo para quienes compren aquí. Sales de tu cabaña y en unos metros ya estás caminando entre árboles.</p>
-        <ul class="area-lista">
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c3-1 4-4 7-5s5 1 9-3M6 9a2 2 0 1 0 0-.01M14 5a2 2 0 1 0 0-.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Senderos para caminar, correr y hacer ejercicio</li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16a8 8 0 0 1-16 0ZM8 18l-2 4M16 18l2 4M9 6c0-2 2-2 2-4M13 6c0-2 2-2 2-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Asadores para comer al aire libre</li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 11 12 4l10 7M5 10v10M19 10v10M8 16h8M8 16v4M16 16v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Palapas y asientos para descansar</li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Acceso exclusivo para propietarios</li>
-        </ul>
-        <a class="boton boton-claro" href="#plano" data-ver-area>Ver el área común en el plano</a>
-      </div>
     </section>
 
     <section class="seccion plano-seccion" id="plano" aria-labelledby="plano-titulo">
@@ -193,6 +180,22 @@
             <p>Una hectárea de bosque con senderos para caminar y hacer ejercicio, asadores, asientos y palapas. Los lotes 9 y 19 colindan con ella y el resto queda a unos pasos.</p>
           </div>
         </aside>
+      </div>
+    </section>
+
+    <section class="area-comun" id="area-comun" aria-labelledby="area-titulo">
+      <video class="video-fondo area-video" muted loop playsinline preload="none" poster="assets/video/bosque.webp"
+             data-src="assets/video/bosque.mp4" aria-hidden="true"></video>
+      <div class="area-contenido">
+        <h2 id="area-titulo">Una hectárea de bosque solo para propietarios</h2>
+        <p>Además de los lotes, Bosques Amador tiene una hectárea de área verde boscosa de uso exclusivo para quienes compren aquí. Sales de tu cabaña y en unos metros ya estás caminando entre árboles.</p>
+        <ul class="area-lista">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c3-1 4-4 7-5s5 1 9-3M6 9a2 2 0 1 0 0-.01M14 5a2 2 0 1 0 0-.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Senderos para caminar, correr y hacer ejercicio</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16a8 8 0 0 1-16 0ZM8 18l-2 4M16 18l2 4M9 6c0-2 2-2 2-4M13 6c0-2 2-2 2-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Asadores para comer al aire libre</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 11 12 4l10 7M5 10v10M19 10v10M8 16h8M8 16v4M16 16v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Palapas y asientos para descansar</li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Acceso exclusivo para propietarios</li>
+        </ul>
+        <a class="boton boton-claro" href="#plano" data-ver-area>Ver el área común en el plano</a>
       </div>
     </section>
 

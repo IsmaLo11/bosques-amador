@@ -71,6 +71,7 @@
     $("[data-dato=total]").textContent = LOTES.length;
     $("[data-dato=min]").textContent = `${Math.floor(minSup)} m²`;
     $("[data-dato=desde]").textContent = dinero.format(desde);
+    $("[data-dato=max]").textContent = `${new Intl.NumberFormat("es-MX").format(Math.floor(maxSup))} m²`;
 
     $("#resumen").innerHTML = `
       <div><dt>Disponibles</dt><dd>${disp.length} de ${LOTES.length}</dd></div>
@@ -134,6 +135,90 @@
       areaNodo.setAttribute("role", "button");
       areaNodo.setAttribute("aria-label", "Área común: una hectárea de bosque con senderos, asadores y palapas");
       capaArea.appendChild(areaNodo);
+    }
+  }
+
+  /* ---------- Lotes simulados sobre la foto del predio ----------
+     Se proyectan las coordenadas del plano sobre la foto aérea con transformaciones
+     de perspectiva, cada una definida por cuatro esquinas (plano -> pixeles de la foto):
+     - Lotes 1 al 9: la franja entre la carretera pavimentada y el borde del barbecho.
+     - Lotes 10 al 28: del borde del barbecho hasta la camioneta y el bosque.
+     El área común se dibuja directo sobre el bosque de la derecha. */
+  const TRAMOS_FOTO = {
+    carretera: {
+      plano: [[595, 117], [661, 144], [364.5, 535], [252, 464]],
+      foto: [[314, 784], [396, 772], [1094, 1194], [704, 1315]],
+    },
+    medio: {
+      plano: [[661, 144], [823, 211], [507, 625], [364.5, 535]],
+      foto: [[396, 772], [830, 680], [1300, 720], [1094, 1194]],
+    },
+  };
+  const AREA_FOTO = [[1305, 705], [1540, 698], [1600, 760], [1655, 930], [1695, 1300], [1075, 1300], [1094, 1194]];
+
+  function perspectiva(de, a) {
+    // Resuelve los 8 coeficientes de la homografía (eliminación de Gauss).
+    const m = [];
+    de.forEach(([x, y], i) => {
+      const [u, v] = a[i];
+      m.push([x, y, 1, 0, 0, 0, -u * x, -u * y, u]);
+      m.push([0, 0, 0, x, y, 1, -v * x, -v * y, v]);
+    });
+    for (let c = 0; c < 8; c++) {
+      let piv = c;
+      for (let r = c + 1; r < 8; r++) if (Math.abs(m[r][c]) > Math.abs(m[piv][c])) piv = r;
+      [m[c], m[piv]] = [m[piv], m[c]];
+      for (let r = 0; r < 8; r++) {
+        if (r === c) continue;
+        const f = m[r][c] / m[c][c];
+        for (let k = c; k < 9; k++) m[r][k] -= f * m[c][k];
+      }
+    }
+    const h = m.map((fila, i) => fila[8] / fila[i]);
+    return ([x, y]) => {
+      const w = h[6] * x + h[7] * y + 1;
+      return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w];
+    };
+  }
+
+  function dibujarFoto() {
+    const capaFoto = $("#foto-lotes"), capaFotoArea = $("#foto-area");
+    if (!capaFoto) return;
+    const proyecciones = {};
+    Object.entries(TRAMOS_FOTO).forEach(([z, t]) => (proyecciones[z] = perspectiva(t.plano, t.foto)));
+    const puntos = (poly, proyectar) => poly.map((q) => proyectar(q).map((n) => n.toFixed(1)).join(",")).join(" ");
+
+    LOTES.forEach((l) => {
+      const a = document.createElementNS(NS, "a");
+      a.setAttribute("href", `#lote-${l.id}`);
+      a.setAttribute("class", "foto-lote");
+      a.setAttribute("aria-label", `Lote ${l.numero}, ${ESTADOS[l.estado]}. Ver en el plano`);
+      a.dataset.estado = l.estado;
+      const proyectar = proyecciones[l.zona];
+      const p = document.createElementNS(NS, "polygon");
+      p.setAttribute("points", puntos(l.poly, proyectar));
+      const [cx, cy] = proyectar(l.centro);
+      const t = document.createElementNS(NS, "text");
+      t.setAttribute("x", cx.toFixed(1));
+      t.setAttribute("y", cy.toFixed(1));
+      // Los lotes lejanos se ven más chicos en la foto; el número también.
+      t.setAttribute("font-size", Math.round(14 + (cy - 680) * 0.03));
+      t.textContent = l.numero;
+      a.append(p, t);
+      capaFoto.appendChild(a);
+    });
+
+    {
+      const g = document.createElementNS(NS, "g");
+      g.setAttribute("class", "foto-area");
+      const p = document.createElementNS(NS, "polygon");
+      p.setAttribute("points", AREA_FOTO.map((q) => q.join(",")).join(" "));
+      const t = document.createElementNS(NS, "text");
+      t.setAttribute("x", 1420);
+      t.setAttribute("y", 1000);
+      t.textContent = "Área común · senderos";
+      g.append(p, t);
+      capaFotoArea.appendChild(g);
     }
   }
 
@@ -428,6 +513,7 @@
   configurarContacto();
   configurarVideos();
   dibujar();
+  dibujarFoto();
   resumen();
   aplicarVista();
   marcarBarra();

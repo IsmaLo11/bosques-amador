@@ -113,10 +113,15 @@ button { font: inherit; color: inherit; }
   display: flex; flex-wrap: wrap; gap: 1.2rem 3rem; margin: 3rem 0 0; padding-top: 1.3rem;
   border-top: 1px solid rgba(255,255,255,.25);
 }
-.hero-datos div { display: flex; flex-direction: column-reverse; }
-.hero-datos dt { font-size: .85rem; color: #c9d4c4; }
-.hero-datos dd { margin: 0; font-size: 1.05rem; color: #dfe6da; }
-.hero-datos dd span { font-family: var(--titulo); font-weight: 600; font-size: 1.65rem; color: #fff; }
+/* Cada dato: la cifra a la izquierda, centrada a lo alto de los dos renglones de texto */
+.hero-datos div { display: grid; grid-template-columns: auto auto; column-gap: .75rem; align-items: center; }
+.hero-datos dd { margin: 0; }
+.hero-datos .dato-num {
+  grid-column: 1; grid-row: 1 / span 2; align-self: center;
+  font-family: var(--titulo); font-weight: 700; font-size: 2.3rem; line-height: 1; color: #f2c27e;
+}
+.hero-datos dt { grid-column: 2; grid-row: 1; align-self: end; font-size: .95rem; font-weight: 600; line-height: 1.25; color: #fff; }
+.hero-datos .dato-nota { grid-column: 2; grid-row: 2; align-self: start; font-size: .88rem; line-height: 1.25; color: #d3ddcd; }
 
 /* ---------- Secciones ---------- */
 .seccion { padding: clamp(3.5rem, 8vw, 6.5rem) clamp(1rem, 4vw, 2.5rem); }
@@ -133,8 +138,23 @@ button { font: inherit; color: inherit; }
 .zonas h3 { font-size: 1.2rem; color: var(--pino); }
 .zonas p { margin-top: .3rem; color: var(--tinta-suave); font-size: .98rem; }
 .zonas .zona-precio { color: var(--tierra); font-weight: 700; font-size: 1.05rem; }
-.lugar-video { position: relative; margin: 0; isolation: isolate; aspect-ratio: 4 / 3; border-radius: var(--radio); overflow: hidden; }
-.lugar-video figcaption {
+.lugar-foto { position: relative; margin: 0; border-radius: var(--radio); overflow: hidden; background: var(--pino); }
+#foto-svg { display: block; width: 100%; height: auto; aspect-ratio: 1450 / 1040; }
+.foto-lote polygon {
+  fill: rgba(63, 175, 94, .38); stroke: rgba(255,255,255,.85); stroke-width: 2px;
+  vector-effect: non-scaling-stroke; transition: fill .12s;
+}
+.foto-lote[data-estado="apartado"] polygon { fill: rgba(227, 155, 27, .6); }
+.foto-lote[data-estado="vendido"] polygon { fill: rgba(201, 58, 46, .6); }
+.foto-lote:hover polygon, .foto-lote:focus-visible polygon { fill: rgba(30, 59, 47, .8); }
+.foto-lote:focus-visible { outline: none; }
+.foto-lote text, .foto-area text {
+  font-family: var(--texto); font-weight: 700; text-anchor: middle; dominant-baseline: central;
+  fill: #fff; pointer-events: none; paint-order: stroke; stroke: rgba(16,30,23,.55); stroke-width: 3px;
+}
+.foto-area polygon { fill: rgba(30, 107, 58, .3); stroke: #c9f0b0; stroke-width: 2px; stroke-dasharray: 8 6; vector-effect: non-scaling-stroke; }
+.foto-area text { font-size: 30px; }
+.lugar-foto figcaption {
   position: absolute; left: 0; right: 0; bottom: 0; padding: 2.5rem 1rem .85rem; color: #fff; font-size: .92rem;
   background: linear-gradient(0deg, rgba(16,30,23,.8), rgba(16,30,23,0));
 }
@@ -383,5 +403,5 @@ button { font: inherit; color: inherit; }
   .hero-acciones { margin-top: 1.2rem; }
   .hero-acciones .boton { min-height: 44px; padding: .55rem 1.1rem; }
   .hero-datos { gap: .6rem 1.6rem; padding-top: .9rem; }
-  .hero-datos dd span { font-size: 1.35rem; }
+  .hero-datos .dato-num { font-size: 1.8rem; }
 }

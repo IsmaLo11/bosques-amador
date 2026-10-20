@@ -34,7 +34,7 @@ Las formas, superficies y precios de los lotes salen del plano `PLANO_PARA_MOSTR
 | Archivo | Segundos del video original | Dónde se usa |
 | --- | --- | --- |
 | `hero.mp4` / `hero-movil.mp4` | 0 a 15 (letrero "Bienvenidos a Zacatlán") | Portada |
-| `terreno.mp4` | 20 a 32 | El lugar |
+| `terreno.mp4` | 20 a 32 | Ya no se usa (El lugar ahora muestra `assets/img/predio.jpg`) |
 | `bosque.mp4` | 48 al final | Área común |
 | `acceso.mp4` | 40 a 47 | Contacto |
 
@@ -45,7 +45,11 @@ index.html              Página
 assets/css/estilos.css  Estilos
 assets/js/config.js     Contacto y ubicación
 assets/js/plano.js      Plano interactivo y videos
-assets/img/             Plano y favicon
+assets/img/             Plano, foto aérea del predio (predio.jpg) y favicon
 assets/video/           Clips de video y sus imágenes fijas
 data/lotes.js           Datos de los 28 lotes y del área común
 ```
+
+## Lotes sobre la foto del predio
+
+En la sección "El lugar", `assets/js/plano.js` dibuja los lotes sobre la foto `predio.jpg` (tomada de `BA_plano.jpeg`) con una transformación de perspectiva. Si cambias la foto, ajusta `ESQUINAS_FOTO`: las cuatro esquinas del predio en pixeles de la imagen de 2000 × 1440 (lote 1 en la carretera, fin de la calle principal, esquina junto al bosque a la altura de la camioneta, y fin de la carretera junto al área común).
