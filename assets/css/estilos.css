@@ -144,7 +144,7 @@ button { font: inherit; color: inherit; }
 .zonas p { margin-top: .3rem; color: var(--tinta-suave); font-size: .98rem; }
 .zonas .zona-precio { color: var(--tierra); font-weight: 700; font-size: 1.05rem; }
 .lugar-foto { position: relative; margin: 0; }
-#foto-svg { display: block; width: 100%; height: auto; aspect-ratio: 1650 / 880; border-radius: var(--radio); }
+#foto-svg { display: block; width: 100%; height: auto; aspect-ratio: 1600 / 880; border-radius: var(--radio); }
 .foto-lote polygon {
   fill: rgba(63, 175, 94, .38); stroke: rgba(255,255,255,.85); stroke-width: 2px;
   vector-effect: non-scaling-stroke; transition: fill .12s;
@@ -160,6 +160,11 @@ button { font: inherit; color: inherit; }
   fill: #fff; pointer-events: none; paint-order: stroke; stroke: rgba(16,30,23,.55); stroke-width: 3px;
 }
 .foto-area polygon { fill: rgba(30, 107, 58, .3); stroke: #c9f0b0; stroke-width: 2px; stroke-dasharray: 8 6; vector-effect: non-scaling-stroke; }
+.foto-area { cursor: pointer; }
+.foto-area polygon { transition: fill .12s; }
+.foto-area:hover polygon, .foto-area:focus-visible polygon, .foto-area.activo polygon { fill: rgba(30, 107, 58, .55); }
+.foto-area.activo polygon { stroke: var(--arena); stroke-dasharray: none; stroke-width: 3px; }
+.foto-area:focus-visible { outline: none; }
 .foto-area text { font-size: 30px; }
 /* "Ver el área común en el mapa": brilla dos veces en color arena */
 .foto-area.brillar polygon { animation: brillar 1.8s ease-in-out; }
@@ -170,14 +175,6 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) { .foto-area.brillar polygon { animation-duration: 2.4s; } }
 .lugar-foto figcaption { margin-top: .7rem; color: var(--tinta-suave); font-size: .95rem; }
 @media (max-width: 860px) { .lugar-texto { grid-template-columns: 1fr; } .lugar-texto .zonas { grid-column: 1; grid-row: auto; } }
-
-/* ---------- Vista desde la carretera ---------- */
-.vista { position: relative; margin: 0; background: var(--pino); }
-.vista img { width: 100%; height: clamp(320px, 62vw, 760px); object-fit: cover; object-position: 50% 62%; }
-.vista-texto {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 3rem clamp(1rem, 5vw, 4rem) 1.1rem;
-  color: #fff; font-weight: 500; background: linear-gradient(0deg, rgba(16,30,23,.82), rgba(16,30,23,0));
-}
 
 /* ---------- Área común ---------- */
 .area-comun {

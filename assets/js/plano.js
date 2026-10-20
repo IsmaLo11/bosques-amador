@@ -106,6 +106,7 @@
   const capaArea = $("#capa-area");
   const nodos = new Map();
   const nodosFoto = new Map();
+  let areaFoto = null;
   let areaNodo = null;
 
   function dibujar() {
@@ -143,21 +144,22 @@
 
   /* ---------- Lotes simulados sobre la foto del predio ----------
      Foto: BA_plano (vista desde la carretera), en pixeles de la imagen de 2000 × 1440.
-     Una sola transformación de perspectiva lleva el plano a la foto, definida por:
-     - la línea interior de los lotes 1 al 9 (de la calle principal al área común),
-     - la orilla de los lotes 20 al 28 y el final del lote 19, que queda junto a la
-       camioneta estacionada entre el terreno y el bosque de senderos.
-     Los lotes 1 al 9 llegan hasta la carretera: su frente se recorta sobre la orilla
-     del asfalto dejando 1.5 m de banqueta. */
-  const ESQUINAS_PLANO = [[661, 144], [806, 202], [488, 614], [364.5, 535]]; // la 3a esquina es el final del lote 19
-  const ESQUINAS_FOTO = [[396, 772], [815, 684], [1292, 723], [1094, 1194]]; // lote 19 termina en la camioneta
+     Una transformación de perspectiva lleva las cuatro esquinas del plano a la foto:
+     lote 1 en la carretera y la calle principal, fin de la calle principal, final del
+     lote 19 y fin de la carretera junto al área común (lote 9). El conjunto está
+     recorrido hacia la carretera, y el frente de los lotes 1 al 9 se prolonga hasta
+     la orilla del asfalto dejando 1.5 m de banqueta. */
+  const ESQUINAS_PLANO = [[595, 117], [823, 211], [507, 625], [252, 464]];
+  const ESQUINAS_FOTO = [[295, 800], [740, 710], [1210, 750], [1020, 1215]];
   // Orilla del asfalto del lado del predio, de la calle principal hacia la cámara.
   const ORILLA_CARRETERA = [[160, 740], [230, 780], [325, 830], [390, 845], [450, 895], [495, 935], [530, 1000],
     [560, 1070], [590, 1130], [620, 1200], [650, 1270], [680, 1340], [710, 1410], [722, 1440],
     [770, 1555], [820, 1675], [870, 1795], [920, 1915]]; // los últimos puntos siguen la carretera fuera de la foto
   const BANQUETA_M = 1.5;
   const PLANO_M = 70 / 25; // unidades del plano por metro (25 m de fondo ≈ 70 unidades)
-  const AREA_FOTO = [[1305, 705], [1540, 698], [1600, 760], [1655, 930], [1695, 1300], [1075, 1300], [1094, 1194]];
+  // Área común: del lindero de los lotes 9 y 19 hasta el bosque de la derecha.
+  const AREA_FOTO = [[1210, 750], [1330, 700], [1560, 690], [1650, 770], [1720, 950], [1780, 1250], [1790, 1440],
+    [960, 1440], [1020, 1215]];
 
   // Punto donde la recta p→q (prolongada más allá de q) cruza la orilla de la carretera.
   function cruceConOrilla(p, q) {
@@ -205,19 +207,15 @@
     const proyectar = perspectiva(ESQUINAS_PLANO, ESQUINAS_FOTO);
 
     // Vértices del lote en la foto. En los lotes 1 al 9 los dos primeros vértices son el
-    // frente a carretera. Como la carretera se abre en cuña (los lotes 5 al 9 son más
-    // profundos), cada lindero se traza desde la línea interior en la dirección que marca
-    // la perspectiva hasta tocar el asfalto, y se recorta dejando la banqueta.
+    // frente a carretera: cada lindero se prolonga hasta el asfalto y se deja la banqueta.
     const enFoto = (l) => {
       const pts = l.poly.map(proyectar);
       if (l.zona !== "carretera") return pts;
       [[0, 3], [1, 2]].forEach(([fuera, dentro]) => {
-        const qi = l.poly[dentro], qo = l.poly[fuera];
-        const largo = Math.hypot(qo[0] - qi[0], qo[1] - qi[1]);
-        const unMetro = [qi[0] + ((qo[0] - qi[0]) / largo) * PLANO_M, qi[1] + ((qo[1] - qi[1]) / largo) * PLANO_M];
-        const pi = pts[dentro], pm = proyectar(unMetro);
-        const pxPorM = Math.hypot(pm[0] - pi[0], pm[1] - pi[1]);
-        const r = cruceConOrilla(pi, pm);
+        const pi = pts[dentro], po = pts[fuera];
+        const largoM = Math.hypot(l.poly[fuera][0] - l.poly[dentro][0], l.poly[fuera][1] - l.poly[dentro][1]) / PLANO_M;
+        const r = cruceConOrilla(pi, po);
+        const pxPorM = Math.hypot(po[0] - pi[0], po[1] - pi[1]) / largoM;
         const d = Math.hypot(r[0] - pi[0], r[1] - pi[1]) || 1;
         const k = Math.min((BANQUETA_M * pxPorM) / d, 0.5);
         pts[fuera] = [r[0] + (pi[0] - r[0]) * k, r[1] + (pi[1] - r[1]) * k];
@@ -242,7 +240,7 @@
       t.setAttribute("y", cy.toFixed(1));
       // El número se ajusta a lo alto del lote en la foto (los de arriba se ven más angostos).
       const ys = pts.map((q) => q[1]);
-      t.setAttribute("font-size", Math.round(Math.min(Math.max((Math.max(...ys) - Math.min(...ys)) * 0.55, 13), 30)));
+      t.setAttribute("font-size", Math.round(Math.min(Math.max((Math.max(...ys) - Math.min(...ys)) * 0.5, 14), 30)));
       t.textContent = l.numero;
       a.append(p, t);
       capaFoto.appendChild(a);
@@ -263,14 +261,25 @@
     {
       const g = document.createElementNS(NS, "g");
       g.setAttribute("class", "foto-area");
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("role", "button");
+      g.setAttribute("aria-label", "Área común: una hectárea de bosque con senderos, asadores y palapas");
+      areaFoto = g;
       const p = document.createElementNS(NS, "polygon");
       p.setAttribute("points", AREA_FOTO.map((q) => q.join(",")).join(" "));
       const t = document.createElementNS(NS, "text");
       t.setAttribute("x", 1440);
-      t.setAttribute("y", 1010);
+      t.setAttribute("y", 1060);
       t.textContent = "Área común · senderos";
       g.append(p, t);
       capaFotoArea.appendChild(g);
+      const abrirArea = (e) => {
+        if (e.type === "keydown") { if (e.key !== "Enter" && e.key !== " ") return; e.preventDefault(); }
+        if (g.classList.contains("activo") && ficha.classList.contains("desde-foto")) cerrarFicha();
+        else seleccionarArea({ desdeFoto: true });
+      };
+      g.addEventListener("click", abrirArea);
+      g.addEventListener("keydown", abrirArea);
     }
   }
 
@@ -439,6 +448,7 @@
   function limpiarSeleccion() {
     if (seleccionado) { nodos.get(seleccionado)?.classList.remove("activo"); nodosFoto.get(seleccionado)?.classList.remove("activo"); }
     areaNodo?.classList.remove("activo");
+    areaFoto?.classList.remove("activo");
     seleccionado = null;
   }
 
@@ -506,10 +516,11 @@
     if (enfocar) enfocarLote(l);
   }
 
-  function seleccionarArea({ enfocar = false } = {}) {
+  function seleccionarArea({ enfocar = false, desdeFoto = false } = {}) {
     limpiarSeleccion();
     areaNodo?.classList.add("activo");
-    ficha.classList.remove("desde-foto");
+    areaFoto?.classList.add("activo");
+    ficha.classList.toggle("desde-foto", desdeFoto);
     abrirPanel("#ficha-area");
     if (enfocar) enfocarCaja(cajaDe([AREA]), 1.15);
   }

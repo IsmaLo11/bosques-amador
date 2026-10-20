@@ -44,13 +44,12 @@ Fotos:
 | Archivo | Origen | Dónde se usa |
 | --- | --- | --- |
 | `predio-lotes.jpg` | `BA_plano.jpeg`, sin los baches de la carretera | El lugar (lotes simulados encima) |
-| `vista-carretera.jpg` | `BA_esquina.jpeg` | Vista desde la carretera |
 
 ## Lotes sobre la foto del predio
 
 `assets/js/plano.js` dibuja los lotes sobre `predio-lotes.jpg` (pixeles de la imagen de 2000 × 1440):
 
-- `ESQUINAS_FOTO`: cuatro puntos que definen la perspectiva. Son la línea interior de los lotes 1 al 9, la orilla de los lotes 20 al 28 y el final del lote 19, junto a la camioneta.
+- `ESQUINAS_FOTO`: las cuatro esquinas del plano en la foto (lote 1 en la carretera, fin de la calle principal, final del lote 19 y fin de la carretera junto al área común). Para mover todos los lotes, suma lo mismo a las cuatro.
 - `ORILLA_CARRETERA`: la orilla del asfalto. Los lotes 1 al 9 llegan hasta ella dejando `BANQUETA_M` (1.5 m) de banqueta.
 - `AREA_FOTO`: el contorno del área común sobre el bosque.
 
