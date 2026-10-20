@@ -166,6 +166,24 @@
   const ORILLA_CARRETERA = [[300, 779], [328, 797], [543, 937], [812, 1585], [840, 1650]];
   const BANQUETA_M = 1.5;
   const PLANO_M = 70 / 25; // unidades del plano por metro (25 m de fondo ≈ 70 unidades)
+  // Reparto de largos en la foto (solo la zona naranja): los lotes 10 al 14 y 20 al 24
+  // se ven un poco más grandes y los 15 al 18 y 25 al 28 un poco más chicos; el lote 19
+  // no cambia. Se mide a lo largo de las filas, de la calle principal (0) al lote 19 (1).
+  const FILAS = { origen: [674.4, 148.9], ancho: [131.5, 53.1], largo: [-283.4, 372.8] };
+  const CORTE_PLANO = 5 / 9; // fin de los lotes 14 y 24 en el plano
+  const CORTE_FOTO = 0.63;   // dónde queda ese límite en la foto
+
+  function repartir([x, y]) {
+    const { origen: [ox, oy], ancho: [ax, ay], largo: [bx, by] } = FILAS;
+    const det = ax * by - ay * bx;
+    const s = ((x - ox) * by - (y - oy) * bx) / det;
+    const u = (ax * (y - oy) - ay * (x - ox)) / det;
+    if (u <= 0 || u >= 1) return [x, y];
+    const u2 = u <= CORTE_PLANO ? (u * CORTE_FOTO) / CORTE_PLANO
+      : CORTE_FOTO + ((u - CORTE_PLANO) * (1 - CORTE_FOTO)) / (1 - CORTE_PLANO);
+    return [ox + s * ax + u2 * bx, oy + s * ay + u2 * by];
+  }
+
   const AREA_FOTO = [[1283, 840], [1345, 760], [1575, 785], [1625, 1150], [1470, 1440], [925, 1440], [1103, 1123]];
 
   // Punto donde la recta p→q (prolongada más allá de q) cruza la orilla de la carretera.
@@ -217,7 +235,7 @@
     // Vértices del lote en la foto. En los lotes 1 al 9 los dos primeros vértices son el
     // frente a carretera: cada lindero se prolonga hasta el asfalto y se deja la banqueta.
     const enFoto = (l) => {
-      const pts = l.poly.map(proyecciones[l.zona]);
+      const pts = l.zona === "medio" ? l.poly.map((q) => proyecciones.medio(repartir(q))) : l.poly.map(proyecciones[l.zona]);
       if (l.zona !== "carretera") return pts;
       [[0, 3], [1, 2]].forEach(([fuera, dentro]) => {
         const pi = pts[dentro], po = pts[fuera];
@@ -581,13 +599,6 @@
       area.addEventListener("animationend", () => area.classList.remove("brillar"), { once: true });
     }));
 
-  $("#f-compartir").addEventListener("click", async (e) => {
-    const b = e.currentTarget;
-    const url = location.href.split("#")[0] + `#lote-${seleccionado}`;
-    try { await navigator.clipboard.writeText(url); b.textContent = "Enlace copiado"; }
-    catch { b.textContent = url; }
-    setTimeout(() => (b.textContent = "Copiar enlace a este lote"), 2200);
-  });
 
   /* ---------- Búsqueda y filtros ---------- */
   const buscar = $("#buscar");

@@ -334,6 +334,9 @@ button { font: inherit; color: inherit; }
 .ficha-cerrar svg path { stroke-width: 2.6; }
 .ficha-zona { color: var(--musgo); font-weight: 600; font-size: .92rem; }
 .ficha-titulo { display: flex; align-items: baseline; gap: .5rem; margin-top: .2rem; }
+/* Número del lote y su estado en un mismo renglón */
+.ficha-cabeza { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9rem; padding-right: 2.6rem; }
+.ficha-cabeza .estado { margin-top: .35rem; }
 .ficha-titulo strong { font-weight: 700; font-size: 3.2rem; line-height: 1; color: var(--pino); }
 .ficha-area .ficha-titulo strong { font-size: 2.2rem; }
 .estado { display: inline-block; margin-top: .6rem; padding: .2rem .75rem; border-radius: 999px; font-size: .85rem; font-weight: 600; }
