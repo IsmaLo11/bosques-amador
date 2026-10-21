@@ -13,4 +13,9 @@ window.CONFIG = {
   // Ubicación del terreno
   mapaUrl: "https://maps.app.goo.gl/QfC8YCz1boaN1BxA7",
   mapaEmbed: "https://maps.google.com/maps?q=20.0142845,-98.0835566&z=14&output=embed",
+
+  // Base de datos de ventas (Supabase). La clave pública está hecha para ir en la página:
+  // sin iniciar sesión solo permite leer los lotes. Nunca pongas aquí la clave secreta.
+  supabaseUrl: "https://arucpivwcaccjohqxeha.supabase.co",
+  supabaseKey: "sb_publishable_qR-UgaS0bVC3N8t5iz-Bqg_4owg7lCi",
 };
