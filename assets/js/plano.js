@@ -80,7 +80,18 @@
       <div><dt>Superficies</dt><dd>${num.format(minSup)} a ${num.format(maxSup)} m²</dd></div>
       <div><dt>Precio desde</dt><dd>${dinero.format(desde)}</dd></div>`;
 
+    // Precios por zona en la sección "El lugar"
+    document.querySelectorAll("[data-zona-precio]").forEach((el) => {
+      const zona = LOTES.filter((l) => l.zona === el.dataset.zonaPrecio);
+      const dispZona = zona.filter((l) => l.estado === "disponible");
+      const precios = (dispZona.length ? dispZona : zona).map((l) => l.precio);
+      const min = Math.min(...precios), max = Math.max(...precios);
+      el.textContent = el.dataset.zonaPrecio === "carretera" && min !== max
+        ? `De ${dinero.format(min)} a ${dinero.format(max)}` : `Desde ${dinero.format(min)}`;
+    });
+
     const ol = $("#zonas-lista");
+    ol.innerHTML = "";
     Object.entries(ZONAS).forEach(([z, nombre]) => {
       const ls = LOTES.filter((l) => l.zona === z);
       const nums = ls.map((l) => l.numero);
@@ -92,13 +103,14 @@
         <span class="z-disp">${d} disp.</span></button>`;
       ol.appendChild(li);
     });
-    ol.addEventListener("click", (e) => {
-      const b = e.target.closest("[data-zona]");
-      if (!b) return;
-      enfocarCaja(cajaDe(LOTES.filter((l) => l.zona === b.dataset.zona).map((l) => l.poly)), 1.15);
-      document.getElementById("mapa").scrollIntoView({ behavior: suave(), block: "center" });
-    });
   }
+
+  $("#zonas-lista").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-zona]");
+    if (!b) return;
+    enfocarCaja(cajaDe(LOTES.filter((l) => l.zona === b.dataset.zona).map((l) => l.poly)), 1.15);
+    document.getElementById("mapa").scrollIntoView({ behavior: suave(), block: "center" });
+  });
 
   /* ---------- Dibujo ---------- */
   const svg = $("#mapa-svg");
@@ -659,6 +671,54 @@
   const marcarBarra = () => barra.classList.toggle("solida", window.scrollY > 40 || document.body.classList.contains("pagina-fija"));
   window.addEventListener("scroll", marcarBarra, { passive: true });
 
+  /* ---------- Precios y estados en vivo (Supabase) ----------
+     La página se dibuja al instante con data/lotes.js y luego toma los precios, superficies
+     y estados de la base de datos de ventas. Si Supabase no responde, se quedan los del archivo. */
+  function etiquetaLote(l) {
+    return `Lote ${l.numero}, ${num.format(l.superficie)} metros cuadrados, ${ESTADOS[l.estado]}`;
+  }
+
+  function aplicarDatosEnVivo(filas) {
+    let cambios = 0;
+    filas.forEach((f) => {
+      const l = porId.get(String(f.numero));
+      if (!l || !ESTADOS[f.estado]) return;
+      const precio = Number(f.precio_lista), sup = Number(f.superficie_m2);
+      if (l.precio !== precio || l.estado !== f.estado || l.superficie !== sup) cambios++;
+      Object.assign(l, { precio, estado: f.estado, superficie: sup });
+      const g = nodos.get(l.id);
+      if (g) { g.dataset.estado = l.estado; g.querySelector("polygon").setAttribute("aria-label", etiquetaLote(l)); }
+      const gf = nodosFoto.get(l.id);
+      if (gf) { gf.dataset.estado = l.estado; gf.setAttribute("aria-label", etiquetaLote(l)); }
+    });
+    resumen();
+    // Si hay una ficha abierta, se vuelve a pintar con los datos nuevos
+    if (seleccionado && !$("#ficha-lote").hidden) {
+      seleccionar(seleccionado, { desdeHash: true, desdeFoto: ficha.classList.contains("desde-foto") });
+    }
+    document.documentElement.dataset.datos = "supabase";
+    return cambios;
+  }
+
+  async function cargarDatosEnVivo() {
+    if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) return;
+    const control = new AbortController();
+    const espera = setTimeout(() => control.abort(), 8000);
+    try {
+      const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/lotes?select=numero,superficie_m2,precio_lista,estado&order=numero`, {
+        headers: { apikey: CONFIG.supabaseKey },
+        signal: control.signal,
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const filas = await r.json();
+      if (Array.isArray(filas) && filas.length) aplicarDatosEnVivo(filas);
+    } catch (e) {
+      console.warn("No se pudieron leer los precios en vivo; se usan los del archivo.", e);
+    } finally {
+      clearTimeout(espera);
+    }
+  }
+
   /* ---------- Inicio ---------- */
   configurarContacto();
   configurarVideos();
@@ -680,4 +740,5 @@
   }
   window.addEventListener("hashchange", desdeHash);
   desdeHash();
+  cargarDatosEnVivo();
 })();

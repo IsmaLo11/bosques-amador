@@ -1,7 +1,7 @@
 /* Los 28 lotes de Bosques Amador, tomados del plano PLANO_PARA_MOSTRAR_LOTES_28_LOTES.pdf.
 
-   Para cambiar el estado de un lote edita  "estado": "disponible" | "apartado" | "vendido".
-   Para cambiar un precio edita  "precio"  (en pesos, sin comas).
+   Precios, superficies y estados se leen en vivo de la base de datos (Supabase) y se
+   cambian desde /admin/. Los valores de aquí solo se usan si Supabase no responde.
    "zona": "carretera" = a orilla de carretera y con calle; "medio" = en medio del predio.
    Las coordenadas "poly" y "centro" ubican el lote sobre el plano; no las modifiques. */
 window.LOTES = [

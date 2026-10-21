@@ -21,11 +21,17 @@ Si `python` no existe, usa `py -m http.server 8080` o, con Node.js, `npx.cmd ser
 | Quiero cambiar… | Archivo |
 | --- | --- |
 | WhatsApp, teléfono, correo o ubicación | `assets/js/config.js` |
-| Estado o precio de un lote | `data/lotes.js` |
+| Estado o precio de un lote | En la administración (`/admin/`, pantalla Lotes y ventas). La página los lee de Supabase |
 | Textos de la página | `index.html` |
 | Colores y estilos | `assets/css/estilos.css` |
 
-Para marcar un lote como vendido, busca su número en `data/lotes.js` y cambia `"estado":"disponible"` por `"estado":"vendido"` (o `"apartado"`).
+Los precios, superficies y estados que ve el visitante salen de la base de datos de ventas (Supabase): el estado cambia solo al registrar o cancelar una venta en `/admin/`, y el precio se edita en la pantalla Lotes. `data/lotes.js` conserva las formas de los lotes en el plano y sirve de respaldo si Supabase no responde.
+
+## Administración de ventas
+
+- Dirección: `/admin/` (por ejemplo https://ismalo11.github.io/bosques-amador/admin/). Solo entran usuarios creados en Supabase con rol asignado.
+- Base de datos: los scripts están en `supabase/` (`01_base_de_datos.sql` crea todo; `02_datos_ejemplo.sql` y `03_borrar_ejemplos.sql` ponen y quitan las ventas de ejemplo).
+- Usuarios nuevos: Supabase → Authentication → Users → Add user. Quedan "pendiente" hasta que se les asigne rol (admin, vendedor o consulta) en la tabla `perfiles`.
 
 ## Origen de los datos
 
