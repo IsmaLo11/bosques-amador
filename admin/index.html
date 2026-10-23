@@ -3,57 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Administración | Bosques Amador</title>
-  <meta name="theme-color" content="#1e3b2f">
-  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css">
+  <meta name="robots" content="noindex">
+  <title>Bosques Amador se mudó a bosquesamador.com.mx</title>
+  <link rel="canonical" href="https://bosquesamador.com.mx/">
+  <script>
+    // Lleva a la misma página en el sitio oficial (quita el prefijo /bosques-amador de GitHub Pages).
+    var ruta = location.pathname.replace(/^\/bosques-amador/, "") || "/";
+    location.replace("https://bosquesamador.com.mx" + ruta + location.search + location.hash);
+  </script>
+  <meta http-equiv="refresh" content="2; url=https://bosquesamador.com.mx/">
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #1e3b2f; color: #fff;
+           font-family: system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; padding: 1rem; }
+    a { color: #f2c27e; }
+  </style>
 </head>
 <body>
-  <!-- Entrar -->
-  <div class="entrar" id="vista-entrar" hidden>
-    <form class="entrar-caja" id="form-entrar">
-      <div class="marca">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 9 20h5L7 30h10v6h6v-6h10l-7-10h5Z" fill="currentColor"/></svg>
-        <span>Bosques Amador</span>
-      </div>
-      <h1>Administración</h1>
-      <p class="sutil">Ventas, pagos y lotes. Solo para personas autorizadas.</p>
-      <label>Correo <input type="email" id="entrar-correo" autocomplete="username" required></label>
-      <label>Contraseña <input type="password" id="entrar-clave" autocomplete="current-password" required></label>
-      <p class="aviso aviso-error" id="entrar-error" hidden></p>
-      <button class="boton boton-pino" type="submit" id="entrar-boton">Entrar</button>
-    </form>
-  </div>
-
-  <!-- Aplicación -->
-  <div class="app" id="vista-app" hidden>
-    <header class="barra">
-      <a class="marca" href="#/tablero">
-        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 9 20h5L7 30h10v6h6v-6h10l-7-10h5Z" fill="currentColor"/></svg>
-        <span>Bosques Amador</span>
-      </a>
-      <nav class="menu" aria-label="Secciones">
-        <a href="#/tablero" data-ruta="tablero">Tablero</a>
-        <a href="#/ventas" data-ruta="ventas">Ventas</a>
-        <a href="#/nueva" data-ruta="nueva" data-solo-admin>Nueva venta</a>
-        <a href="#/lotes" data-ruta="lotes">Lotes</a>
-      </nav>
-      <div class="usuario">
-        <span id="usuario-nombre"></span>
-        <button class="boton boton-texto" id="salir" type="button">Salir</button>
-      </div>
-    </header>
-    <main class="contenido" id="contenido" tabindex="-1"></main>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="../assets/js/config.js"></script>
-  <script src="admin.js"></script>
+  <p>Bosques Amador ahora está en <a href="https://bosquesamador.com.mx/">bosquesamador.com.mx</a>.</p>
 </body>
 </html>
